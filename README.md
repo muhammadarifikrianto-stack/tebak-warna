@@ -24,3 +24,6 @@ Tolong buatkan aplikasi web satu halaman (single-page application) menggunakan H
 - Tema Desain: Warna-warni seperti pelangi, super ceria, menyenangkan, dan penuh energi.
 - Latar Belakang: Gunakan gradasi warna pelangi cerah yang warnanya bisa bergeser atau bergerak perlahan.
 - Tata Letak: Saldo di atas, kartu yang diundi di tengah, 4 tombol warna-warni berderet rapi di bawah kartu, dan input taruhan di bagian bawah. Pastikan semuanya responsif di desktop maupun mobile.
+
+[👉 Mainkan Gamenya di Sini!](https://muhammadarifikrianto-stack.github.io/tebak-warna/)
+
