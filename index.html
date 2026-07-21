@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Tebak Warna Kartu 🎴</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #22c55e;
+    --yellow: #eab308;
+    --blue: #3b82f6;
+    --red: #ef4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(-45deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #c77dff, #ff6b6b);
+    background-size: 400% 400%;
+    animation: rainbowBG 12s ease infinite;
+    overflow-x: hidden;
+  }
+
+  @keyframes rainbowBG {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ── HEADER ── */
+  .header {
+    width: 100%;
+    padding: 1.2rem 2rem;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 2px solid rgba(255,255,255,0.5);
+    text-align: center;
+  }
+
+  .header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    letter-spacing: 1px;
+  }
+
+  #balance-amount {
+    color: #fff700;
+    text-shadow: 0 0 10px rgba(255,247,0,0.8);
+  }
+
+  /* ── GAME AREA ── */
+  .game-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    padding: 2rem 1rem;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  /* ── CARD ── */
+  .card-container { perspective: 1200px; }
+
+  .card {
+    width: 160px;
+    height: 230px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(.36,.07,.19,.97);
+  }
+
+  .card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+
+  .card-front {
+    background: linear-gradient(135deg, #1e1b4b, #312e81);
+    border: 3px solid rgba(255,255,255,0.3);
+    font-size: 5rem;
+  }
+
+  .card-back {
+    transform: rotateY(180deg);
+    border: 4px solid rgba(255,255,255,0.6);
+    font-size: 4rem;
+  }
+
+  /* ── COLOR BUTTONS ── */
+  .buttons-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .guess-btn {
+    padding: 0.9rem 1rem;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    color: #fff;
+    cursor: pointer;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .guess-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .guess-btn:hover:not(:disabled)::after { opacity: 1; }
+  .guess-btn:hover:not(:disabled) { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+  .guess-btn:active:not(:disabled) { transform: translateY(0px); }
+
+  .guess-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-green  { background: linear-gradient(135deg, #16a34a, #4ade80); }
+  .btn-yellow { background: linear-gradient(135deg, #b45309, #fbbf24); color: #1a1a1a; text-shadow: none; }
+  .btn-blue   { background: linear-gradient(135deg, #1d4ed8, #60a5fa); }
+  .btn-red    { background: linear-gradient(135deg, #b91c1c, #f87171); }
+
+  /* ── BET SECTION ── */
+  .bet-section {
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.2rem 1.8rem;
+    text-align: center;
+    width: 100%;
+    max-width: 360px;
+    border: 2px solid rgba(255,255,255,0.4);
+  }
+
+  .bet-section label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.6rem;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  #betInput {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,0.5);
+    font-size: 1.1rem;
+    font-family: 'Inter', sans-serif;
+    background: rgba(255,255,255,0.85);
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  #betInput:focus { border-color: #fff700; }
+
+  .bet-hint {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.8);
+    margin-top: 0.4rem;
+  }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 900;
+    padding: 1rem;
+  }
+
+  .modal-overlay.hidden { display: none; }
+
+  .modal-box {
+    background: linear-gradient(135deg, #fff, #f0f0ff);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    width: 100%;
+    max-width: 360px;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  .modal-box h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: #312e81;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-box p {
+    color: #555;
+    margin-bottom: 1.2rem;
+    font-size: 0.95rem;
+  }
+
+  .modal-box input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    border: 2px solid #c7c7f0;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .modal-box input:focus { border-color: #6366f1; }
+
+  .modal-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.8rem 2rem;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    cursor: pointer;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.5);
+    transition: transform 0.15s;
+    width: 100%;
+  }
+
+  .modal-btn:hover { transform: translateY(-2px); }
+
+  .modal-emoji { font-size: 3.5rem; margin-bottom: 0.5rem; display: block; }
+
+  /* ── SURPRISE OVERLAY ── */
+  #surpriseOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  #surpriseOverlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .surprise-character {
+    font-size: 10rem;
+    animation: characterPop 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    filter: drop-shadow(0 0 30px rgba(255,255,255,0.4));
+  }
+
+  @keyframes characterPop {
+    0%   { transform: scale(0) rotate(-20deg); }
+    60%  { transform: scale(1.15) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  .surprise-character.lose-anim {
+    animation: characterFall 0.9s cubic-bezier(0.36,.07,.19,.97) forwards;
+  }
+
+  @keyframes characterFall {
+    0%   { transform: scale(0) rotate(0deg); }
+    40%  { transform: scale(1.2) rotate(-15deg); }
+    70%  { transform: scale(1) rotate(30deg); }
+    85%  { transform: scale(1) rotate(-10deg); }
+    100% { transform: scale(1) rotate(15deg); }
+  }
+
+  /* ── PROFIT BANNER ── */
+  #profitBanner {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2rem, 8vw, 4.5rem);
+    color: #fff700;
+    text-shadow: 0 0 20px rgba(255,247,0,0.8), 0 4px 0 rgba(0,0,0,0.5);
+    text-align: center;
+    padding: 0 1rem;
+    animation: profitBounce 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards, shimmer 1s ease 0.6s infinite;
+    transform: scale(0);
+    letter-spacing: 2px;
+  }
+
+  @keyframes profitBounce {
+    0%   { transform: scale(0) rotate(-10deg); }
+    70%  { transform: scale(1.1) rotate(3deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  @keyframes shimmer {
+    0%,100% { text-shadow: 0 0 20px rgba(255,247,0,0.8), 0 4px 0 rgba(0,0,0,0.5); }
+    50%      { text-shadow: 0 0 40px rgba(255,100,0,1),   0 4px 0 rgba(0,0,0,0.5); }
+  }
+
+  #surpriseSub {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 1px;
+  }
+
+  /* ── FIREWORKS ── */
+  .firework {
+    position: absolute;
+    font-size: 2rem;
+    animation: flyUp 1s ease-out forwards;
+    pointer-events: none;
+  }
+
+  @keyframes flyUp {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-120px) scale(2); }
+  }
+
+  /* ── GAME OVER ── */
+  #gameOverModal .modal-box {
+    background: linear-gradient(135deg, #fff, #ffe0e0);
+  }
+
+  #gameOverModal .modal-box h2 { color: #b91c1c; }
+
+  /* ── RESULT LABEL ── */
+  #resultLabel {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    min-height: 1.8rem;
+    transition: opacity 0.3s;
+  }
+
+  /* ── HIDDEN ── */
+  .hidden { display: none !important; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 420px) {
+    .card { width: 130px; height: 190px; }
+    .surprise-character { font-size: 7rem; }
+    #profitBanner { font-size: 2.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header class="header">
+  <h1>💰 Saldo: <span id="balance-amount">Rp 0</span></h1>
+</header>
+
+<!-- ══ GAME AREA ══ -->
+<main class="game-area">
+
+  <!-- Card -->
+  <div class="card-container">
+    <div class="card" id="card">
+      <div class="card-face card-front">🎴</div>
+      <div class="card-face card-back" id="cardBack"></div>
+    </div>
+  </div>
+
+  <!-- Result label -->
+  <div id="resultLabel"></div>
+
+  <!-- Color Buttons -->
+  <div class="buttons-row">
+    <button class="guess-btn btn-green"  id="btn-Hijau"  data-color="Hijau"  disabled>🟢 Hijau</button>
+    <button class="guess-btn btn-yellow" id="btn-Kuning" data-color="Kuning" disabled>🟡 Kuning</button>
+    <button class="guess-btn btn-blue"   id="btn-Biru"   data-color="Biru"   disabled>🔵 Biru</button>
+    <button class="guess-btn btn-red"    id="btn-Merah"  data-color="Merah"  disabled>🔴 Merah</button>
+  </div>
+
+  <!-- Bet input -->
+  <div class="bet-section">
+    <label for="betInput">💵 Jumlah Taruhan</label>
+    <input type="number" id="betInput" min="1" placeholder="Masukkan jumlah taruhan…" disabled>
+    <p class="bet-hint" id="betHint">Masukkan saldo awal terlebih dahulu</p>
+  </div>
+
+</main>
+
+<!-- ══ SURPRISE OVERLAY ══ -->
+<div id="surpriseOverlay">
+  <div class="surprise-character" id="surpriseChar"></div>
+  <div id="profitBanner" class="hidden"></div>
+  <div id="surpriseSub"></div>
+</div>
+
+<!-- ══ INITIAL MODAL ══ -->
+<div class="modal-overlay" id="initModal">
+  <div class="modal-box">
+    <span class="modal-emoji">🎮</span>
+    <h2>Masukkan Saldo Awal</h2>
+    <p>Rentang: <strong>Rp10.000 – Rp100.000</strong></p>
+    <input type="number" id="initInput" min="10000" max="100000" placeholder="Contoh: 50000">
+    <button class="modal-btn" id="startBtn">Mulai Bermain! 🚀</button>
+    <p id="initError" style="color:red;font-size:0.85rem;margin-top:0.5rem;"></p>
+  </div>
+</div>
+
+<!-- ══ GAME OVER MODAL ══ -->
+<div class="modal-overlay hidden" id="gameOverModal">
+  <div class="modal-box">
+    <span class="modal-emoji">😭</span>
+    <h2>Game Over!</h2>
+    <p>Saldo kamu habis! Tapi jangan sedih, coba lagi yuk! 🎉</p>
+    <button class="modal-btn" id="restartBtn" style="background:linear-gradient(135deg,#ef4444,#f97316);">
+      Main Lagi! 🔄
+    </button>
+  </div>
+</div>
+
+<script>
+// ══ STATE ══
+let balance = 0;
+let isPlaying = false;
+
+// ══ COLORS ══
+const COLORS = ['Hijau', 'Kuning', 'Biru', 'Merah'];
+const COLOR_MAP = {
+  'Hijau':  { bg: 'linear-gradient(135deg,#15803d,#4ade80)', emoji: '💚' },
+  'Kuning': { bg: 'linear-gradient(135deg,#b45309,#fbbf24)', emoji: '💛' },
+  'Biru':   { bg: 'linear-gradient(135deg,#1d4ed8,#60a5fa)', emoji: '💙' },
+  'Merah':  { bg: 'linear-gradient(135deg,#b91c1c,#f87171)', emoji: '❤️'  },
+};
+
+// ══ DOM ══
+const balanceEl    = document.getElementById('balance-amount');
+const betInput     = document.getElementById('betInput');
+const betHint      = document.getElementById('betHint');
+const guessButtons = document.querySelectorAll('.guess-btn');
+const card         = document.getElementById('card');
+const cardBack     = document.getElementById('cardBack');
+const resultLabel  = document.getElementById('resultLabel');
+
+const surpriseOverlay = document.getElementById('surpriseOverlay');
+const surpriseChar    = document.getElementById('surpriseChar');
+const profitBanner    = document.getElementById('profitBanner');
+const surpriseSub     = document.getElementById('surpriseSub');
+
+const initModal  = document.getElementById('initModal');
+const initInput  = document.getElementById('initInput');
+const startBtn   = document.getElementById('startBtn');
+const initError  = document.getElementById('initError');
+
+const gameOverModal = document.getElementById('gameOverModal');
+const restartBtn    = document.getElementById('restartBtn');
+
+// ══ HELPERS ══
+function formatRp(n) {
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+
+function updateBalance() {
+  balanceEl.textContent = formatRp(balance);
+}
+
+function setButtonsEnabled(val) {
+  guessButtons.forEach(b => b.disabled = !val);
+}
+
+function resetCard() {
+  card.classList.remove('flipped');
+  cardBack.style.background = '';
+  cardBack.textContent = '';
+  resultLabel.textContent = '';
+}
+
+// ══ INITIAL MODAL ══
+startBtn.addEventListener('click', () => {
+  const val = parseInt(initInput.value, 10);
+  if (isNaN(val) || val < 10000 || val > 100000) {
+    initError.textContent = '⚠️ Masukkan angka antara 10.000 – 100.000';
+    return;
+  }
+  balance = val;
+  updateBalance();
+  initModal.classList.add('hidden');
+  betInput.disabled = false;
+  betHint.textContent = `Maks taruhan: ${formatRp(balance)}`;
+});
+
+initInput.addEventListener('keydown', e => { if (e.key === 'Enter') startBtn.click(); });
+
+// ══ BET INPUT ══
+betInput.addEventListener('input', () => {
+  const bet = parseInt(betInput.value, 10);
+  if (!isNaN(bet) && bet > 0 && bet <= balance) {
+    setButtonsEnabled(true);
+    betHint.textContent = `✅ Taruhan valid: ${formatRp(bet)}`;
+  } else {
+    setButtonsEnabled(false);
+    if (!isNaN(bet) && bet > balance) {
+      betHint.textContent = `❌ Melebihi saldo (${formatRp(balance)})`;
+    } else {
+      betHint.textContent = `Masukkan jumlah taruhan`;
+    }
+  }
+});
+
+// ══ GUESS ══
+guessButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (isPlaying) return;
+    const bet = parseInt(betInput.value, 10);
+    if (isNaN(bet) || bet <= 0 || bet > balance) return;
+
+    isPlaying = true;
+    setButtonsEnabled(false);
+    betInput.disabled = true;
+    resetCard();
+
+    // Pick random actual color
+    const actual = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const guess  = btn.dataset.color;
+
+    // Set card back appearance
+    cardBack.style.background = COLOR_MAP[actual].bg;
+    cardBack.textContent = COLOR_MAP[actual].emoji;
+
+    // Flip card
+    card.classList.add('flipped');
+
+    // After flip, evaluate
+    setTimeout(() => {
+      if (guess === actual) {
+        // ── WIN ──
+        const profitPct = Math.floor(Math.random() * 991) + 10; // 10–1000
+        const profit    = Math.floor(bet * profitPct / 100);
+        balance += profit;
+        updateBalance();
+
+        resultLabel.textContent = `✅ Benar! +${formatRp(profit)}`;
+        resultLabel.style.color = '#a3e635';
+
+        showSurprise('win', profitPct, profit);
+
+      } else {
+        // ── LOSE ──
+        balance -= bet;
+        updateBalance();
+
+        resultLabel.textContent = `❌ Salah! Kartu: ${actual} -${formatRp(bet)}`;
+        resultLabel.style.color = '#fca5a5';
+
+        showSurprise('lose', 0, bet);
+      }
+
+      // Check game over
+      if (balance <= 0) {
+        setTimeout(() => {
+          gameOverModal.classList.remove('hidden');
+        }, 2200);
+      }
+
+    }, 950);
+  });
+});
+
+// ══ SURPRISE ══
+function showSurprise(type, profitPct, amount) {
+  // Clear old fireworks
+  document.querySelectorAll('.firework').forEach(f => f.remove());
+
+  if (type === 'win') {
+    surpriseChar.textContent = ['🥳','🎉','🤩','😱','🎊'][Math.floor(Math.random()*5)];
+    surpriseChar.className = 'surprise-character';
+    profitBanner.textContent = `🔥 UNTUNG ${profitPct}%! +${formatRp(amount)} 🔥`;
+    profitBanner.classList.remove('hidden');
+    surpriseSub.textContent = 'SELAMAT! KAMU MENANG!';
+    spawnFireworks();
+  } else {
+    surpriseChar.textContent = ['😂','🤣','😵‍💫','🫠','💀'][Math.floor(Math.random()*5)];
+    surpriseChar.className = 'surprise-character lose-anim';
+    profitBanner.classList.add('hidden');
+    surpriseSub.textContent = `AWWW SALAH! -${formatRp(amount)} 😭`;
+  }
+
+  // Show overlay
+  surpriseOverlay.classList.add('show');
+
+  // Hide after 2.5s
+  setTimeout(() => {
+    surpriseOverlay.classList.remove('show');
+    profitBanner.classList.add('hidden');
+    isPlaying = false;
+    betInput.disabled = false;
+    betInput.value = '';
+    betHint.textContent = `Maks taruhan: ${formatRp(balance)}`;
+    setButtonsEnabled(false);
+    if (balance > 0) resetCard();
+  }, 2500);
+}
+
+function spawnFireworks() {
+  const emojis = ['🎆','🎇','✨','🌟','⭐','💫','🎊','🎉'];
+  for (let i = 0; i < 10; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'firework';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left  = Math.random() * 100 + 'vw';
+      el.style.top   = (50 + Math.random() * 40) + 'vh';
+      el.style.animationDuration = (0.7 + Math.random() * 0.6) + 's';
+      surpriseOverlay.appendChild(el);
+    }, i * 150);
+  }
+}
+
+// ══ RESTART ══
+restartBtn.addEventListener('click', () => {
+  gameOverModal.classList.add('hidden');
+  initModal.classList.remove('hidden');
+  initInput.value = '';
+  initError.textContent = '';
+  balance = 0;
+  updateBalance();
+  resetCard();
+  betInput.disabled = true;
+  betHint.textContent = 'Masukkan saldo awal terlebih dahulu';
+  setButtonsEnabled(false);
+});
+
+// ══ INIT ══
+updateBalance();
+</script>
+</body>
+</html>
